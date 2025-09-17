@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DomainFi — Tokenisasi Domain (Tanpa Wallet)</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#7c3aed;--muted:#94a3b8;--glass:rgba(255,255,255,0.04)}
+    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{margin:0;background:linear-gradient(180deg,#071025 0%, #071a2a 100%);color:#e6eef8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px}
+    .wrap{width:100%;max-width:980px}
+    header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+    .logo{width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#06b6d4);display:flex;align-items:center;justify-content:center;font-weight:700}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:4px 0 0;color:var(--muted);font-size:13px}
+    .grid{display:grid;grid-template-columns:1fr 420px;gap:20px}
+    .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 20px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03)}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:8px}
+    input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:inherit}
+    .row{display:flex;gap:10px}
+    .btn{display:inline-block;padding:10px 14px;border-radius:10px;border:none;background:var(--accent);color:white;cursor:pointer}
+    .muted{color:var(--muted);font-size:13px}
+    .history{margin-top:12px;max-height:300px;overflow:auto}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;text-align:left;border-bottom:1px dashed rgba(255,255,255,0.03);font-size:13px}
+    .token-card{padding:12px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border:1px solid rgba(255,255,255,0.03)}
+    .small{font-size:12px;color:var(--muted)}
+    .actions{display:flex;gap:8px;margin-top:12px}
+    .copy{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px;border-radius:8px;color:var(--muted);cursor:pointer}
+    footer{margin-top:14px;color:var(--muted);font-size:12px}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div class="logo">DF</div>
+      <div>
+        <h1>DomainFi — Tokenisasi Domain (Tanpa Wallet)</h1>
+        <p class="lead">Situs demo untuk mengubah domain menjadi token metadata lokal (simulasi). Tidak terhubung ke wallet atau blockchain.</p>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <h3>Buat Token dari Domain</h3>
+        <p class="muted">Masukkan data domain, atur parameter token, lalu klik <strong>Tokenize</strong>. Hasil akan tersimpan di browser (localStorage).</p>
+
+        <form id="tokenForm" onsubmit="return false;">
+          <div style="margin-top:12px">
+            <label>Domain (contoh: example.id)</label>
+            <input id="domain" placeholder="example.id" required />
+          </div>
+
+          <div style="margin-top:12px" class="row">
+            <div style="flex:1">
+              <label>Nama Token</label>
+              <input id="name" placeholder="Example Domain Token" />
+            </div>
+            <div style="width:120px">
+              <label>Simbol</label>
+              <input id="symbol" placeholder="EXID" />
+            </div>
+          </div>
+
+          <div style="margin-top:12px" class="row">
+            <div style="flex:1">
+              <label>Jumlah Supply (opsional)</label>
+              <input id="supply" type="number" min="1" placeholder="1" />
+            </div>
+            <div style="width:120px">
+              <label>Jenis</label>
+              <select id="type">
+                <option value="NFT">NFT (unik)</option>
+                <option value="FT">FT (fungible)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <label>Deskripsi (opsional)</label>
+            <textarea id="desc" rows="3" placeholder="Deskripsi singkat token/domain..."></textarea>
+          </div>
+
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+            <button class="btn" id="tokenizeBtn">Tokenize</button>
+            <button class="copy" id="clearBtn" type="button">Bersihkan form</button>
+            <span class="small" id="status"></span>
+          </div>
+        </form>
+
+        <div class="history card" style="margin-top:14px">
+          <h4 style="margin:6px 0">Riwayat Token</h4>
+          <div id="historyList" class="muted small">Belum ada token yang dibuat.</div>
+        </div>
+
+        <footer>
+          <div>Catatan: Ini hanya simulasi lokal. Untuk menyimpan on-chain Anda perlu integrasi smart contract & wallet.</div>
+        </footer>
+      </section>
+
+      <aside>
+        <div class="card token-card">
+          <h4>Preview Token</h4>
+          <div id="preview" style="margin-top:10px">
+            <div class="small">Token ID: —</div>
+            <h3 id="previewName" style="margin:6px 0">—</h3>
+            <div class="small" id="previewDomain">—</div>
+            <p id="previewDesc" class="muted small">—</p>
+
+            <div class="actions">
+              <button class="btn" id="downloadJson">Download JSON</button>
+              <button class="copy" id="copyMeta">Salin Metadata</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h4>Petunjuk singkat</h4>
+          <ol class="muted small">
+            <li>Isi form domain lalu klik Tokenize.</li>
+            <li>Token akan tercatat di penyimpanan lokal dan muncul di Riwayat.</li>
+            <li>Gunakan tombol Download JSON untuk mengekspor metadata token.</li>
+          </ol>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    // utility
+    function uuidv4(){return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16);});}
+    function nowISO(){return new Date().toISOString();}
+
+    const form = document.getElementById('tokenForm');
+    const domainIn = document.getElementById('domain');
+    const nameIn = document.getElementById('name');
+    const symbolIn = document.getElementById('symbol');
+    const supplyIn = document.getElementById('supply');
+    const typeIn = document.getElementById('type');
+    const descIn = document.getElementById('desc');
+    const status = document.getElementById('status');
+
+    const previewName = document.getElementById('previewName');
+    const previewDomain = document.getElementById('previewDomain');
+    const previewDesc = document.getElementById('previewDesc');
+    const historyList = document.getElementById('historyList');
+    const tokenizeBtn = document.getElementById('tokenizeBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const downloadJson = document.getElementById('downloadJson');
+    const copyMeta = document.getElementById('copyMeta');
+
+    function loadHistory(){
+      const raw = localStorage.getItem('domainfi_history');
+      return raw?JSON.parse(raw):[];
+    }
+    function saveHistory(list){localStorage.setItem('domainfi_history',JSON.stringify(list));}
+
+    function renderHistory(){
+      const list = loadHistory();
+      if(!list.length){historyList.innerHTML = '<div class="muted small">Belum ada token yang dibuat.</div>';return}
+      let html = '<table><thead><tr><th>Token ID</th><th>Domain</th><th>Type</th><th>Waktu</th></tr></thead><tbody>';
+      for(const t of list.slice().reverse()){
+        html += `<tr><td class="small">${t.id.slice(0,8)}</td><td>${t.domain}</td><td class="small">${t.type}</td><td class="small">${new Date(t.createdAt).toLocaleString()}</td></tr>`;
+      }
+      html += '</tbody></table>';
+      historyList.innerHTML = html;
+    }
+
+    function setPreview(token){
+      previewName.textContent = token.name || 'Unnamed Token';
+      previewDomain.textContent = token.domain || '—';
+      previewDesc.textContent = token.description || '—';
+      downloadJson.dataset.token = JSON.stringify(token);
+      copyMeta.dataset.token = JSON.stringify(token);
+    }
+
+    tokenizeBtn.addEventListener('click',()=>{
+      const domain = domainIn.value.trim();
+      if(!domain){status.textContent = 'Isi nama domain dulu.';return}
+      const token = {
+        id: uuidv4(),
+        domain: domain,
+        name: nameIn.value.trim() || `${domain} Token`,
+        symbol: symbolIn.value.trim() || domain.split('.')[0].slice(0,6).toUpperCase(),
+        type: typeIn.value,
+        supply: Number(supplyIn.value) || (typeIn.value === 'NFT'?1:1000),
+        description: descIn.value.trim(),
+        createdAt: nowISO(),
+        source: 'local-simulation'
+      };
+
+      const list = loadHistory();
+      list.push(token);
+      saveHistory(list);
+      renderHistory();
+      setPreview(token);
+      status.textContent = 'Token berhasil dibuat dan disimpan di localStorage.';
+      setTimeout(()=>{status.textContent=''},2500);
+    });
+
+    clearBtn.addEventListener('click',()=>{domainIn.value='';nameIn.value='';symbolIn.value='';supplyIn.value='';descIn.value='';typeIn.value='NFT';status.textContent='Form dibersihkan.';setTimeout(()=>status.textContent='',1400)});
+
+    downloadJson.addEventListener('click',()=>{
+      const tokenStr = downloadJson.dataset.token;
+      if(!tokenStr){status.textContent='Tidak ada token untuk diunduh.';return}
+      const blob = new Blob([tokenStr],{type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'domainfi-token-'+JSON.parse(tokenStr).id.slice(0,8)+'.json';
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      status.textContent='JSON telah diunduh.';setTimeout(()=>status.textContent='',1600);
+    });
+
+    copyMeta.addEventListener('click',async ()=>{
+      const tokenStr = copyMeta.dataset.token;
+      if(!tokenStr){status.textContent='Tidak ada metadata.';return}
+      try{await navigator.clipboard.writeText(tokenStr);status.textContent='Metadata disalin ke clipboard.';setTimeout(()=>status.textContent='',1500)}catch(e){status.textContent='Gagal menyalin. Browser tidak mendukung.'}
+    });
+
+    // when clicking a history row, show preview
+    historyList.addEventListener('click',(evt)=>{
+      const tr = evt.target.closest('tr');
+      if(!tr) return;
+      const key = tr.querySelector('td')?.textContent;
+      if(!key) return;
+      const list = loadHistory();
+      const found = list.find(t=>t.id.startsWith(key));
+      if(found) setPreview(found);
+    });
+
+    // init
+    renderHistory();
+    // if history exists, show last token
+    const hist = loadHistory(); if(hist.length) setPreview(hist[hist.length-1]);
+
+  </script>
+</body>
+</html>
